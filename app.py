@@ -646,11 +646,11 @@ if ss.logged_in:
                 rooms = pd.DataFrame(columns=["room_code","owner","created_at","status","paper_json","time_limit","start_time"])
 
             # Show all rooms
-            if not rooms.empty:
-                st.subheader("🏫 Active Rooms")
-                st.dataframe(rooms[["room_code", "owner", "status", "created_at"]])
-            else:
-                st.info("No rooms available yet.")
+            # if not rooms.empty:
+            #     st.subheader("🏫 Active Rooms")
+            #     st.dataframe(rooms[["room_code", "owner", "status", "created_at"]])
+            # else:
+            #     st.info("No rooms available yet.")
 
             # --- Lobby / Active Room ---
             if ss.get("active_room"):
@@ -1446,3 +1446,4 @@ if ss.logged_in:
                         f'<a href="{facebook_redirect_url}"><img src="{facebook_url}" width="60" height="60"></a>', unsafe_allow_html=True)
             # Thank you message
             st.write("<p style='color:green; font-size: 30px; font-weight: bold;'>Thank you for using this app, share with your friends!😇</p>", unsafe_allow_html=True)
+
