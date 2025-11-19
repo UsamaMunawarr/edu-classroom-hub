@@ -1401,12 +1401,23 @@ if ss.logged_in:
                         key_choice = f"quick_choice_{ss['joined_quick_room']}_{ss['joined_name_quick']}_{q.get('id')}"
                         choice = st.radio("Choose answer", options=opts, key=key_choice)
                         if st.button("Submit Answer"):
-                            letter = q.get("answer_letter","")
-                            correct_text = opts[ord(letter.lower())-97] if letter else q.get("answer","")
+                            letter = q.get("answer_letter", "")
+                            correct_text = opts[ord(letter.lower()) - 97] if letter else q.get("answer", "")
                             correct_flag = (choice.strip().lower() == correct_text.strip().lower())
+                            # ✅ Increment score if correct
+                            if correct_flag:
+                                ss["quiz_score"] = ss.get("quiz_score", 0) + 1
+
                             ss["quiz_qindex"] += 1
                             time.sleep(0.5)
                             st.rerun()
+                        # if st.button("Submit Answer"):
+                        #     letter = q.get("answer_letter","")
+                        #     correct_text = opts[ord(letter.lower())-97] if letter else q.get("answer","")
+                        #     correct_flag = (choice.strip().lower() == correct_text.strip().lower())
+                        #     ss["quiz_qindex"] += 1
+                        #     time.sleep(0.5)
+                        #     st.rerun()
 
 
         # -------------------------
@@ -1446,4 +1457,5 @@ if ss.logged_in:
                         f'<a href="{facebook_redirect_url}"><img src="{facebook_url}" width="60" height="60"></a>', unsafe_allow_html=True)
             # Thank you message
             st.write("<p style='color:green; font-size: 30px; font-weight: bold;'>Thank you for using this app, share with your friends!😇</p>", unsafe_allow_html=True)
+
 
