@@ -51,7 +51,7 @@
 
 | Home Screen                   | Teacher Dashboard                      | Student Quiz Panel                | Exam Submission                   |
 | ----------------------------- | -------------------------------------- | --------------------------------- | --------------------------------- |
-| ![Home](demo/home_screen.gif) | ![Teacher](demo/teacher_dashboard.gif) | ![Student](demo/student_quiz.gif) | ![Results](demo/exam_results.gif) |
+| ![Home](demo/home_screen.PNG) | ![Teacher](demo/teacher_dashboard.gif) | ![Student](demo/student_quiz.gif) | ![Results](demo/exam_results.gif) |
 
 ---
 
@@ -110,4 +110,5 @@ streamlit run app.py
 [![GitHub](https://img.icons8.com/fluent/48/000000/github.png)](https://github.com/UsamaMunawarr)[![LinkedIn](https://img.icons8.com/color/48/000000/linkedin.png)](https://www.linkedin.com/in/abu--usama)[![YouTube](https://img.icons8.com/?size=50\&id=19318\&format=png)](https://www.youtube.com/@CodeBaseStats)[![Twitter](https://img.icons8.com/color/48/000000/twitter.png)](https://twitter.com/Usama__Munawar)[![Facebook](https://img.icons8.com/color/48/000000/facebook-new.png)](https://www.facebook.com/profile.php?id=100005320726463)
 
 > Thank you for exploring this project! Share & demo it to showcase **AI, LLMs, and real-time web app expertise**. 😇
+
 
