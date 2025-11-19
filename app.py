@@ -49,8 +49,6 @@ CREATE TABLE IF NOT EXISTS results (
 """)
 conn.commit()
 
-
-
 # -------------------------
 # GEMINI & EMBEDDINGS
 # -------------------------
@@ -74,7 +72,6 @@ else:
 
 # Don't load SentenceTransformer here! We'll lazy-load it inside grading function
 embed_model = None
-
 
 # -------------------------
 # UTILITY FUNCTIONS
@@ -251,8 +248,6 @@ def make_pdf_report(data, student_answers, marks_config):
     buf.seek(0)
     return buf
 
-
-
 # -------------------------
 # DOCUMENT CREATION
 # -------------------------
@@ -399,7 +394,6 @@ def show_score_table(breakdown, total_score=None, total_marks=None):
     else:
         st.info("No breakdown data available.")
 
-######################################################
 # -------------------------
 # SECTION SCORING HELPERS (reuses your existing functions)
 # -------------------------
@@ -478,8 +472,6 @@ def save_result_csv(room_code, student_name, score, total, breakdown):
 
     df.to_csv(QUIZ_RESULTS_CSV, index=False)
 
-
-
 # -------------------------
 # LOGIN PAGE
 # -------------------------
@@ -502,8 +494,6 @@ if not ss.logged_in:
             st.rerun()
         else:
             st.error("Incorrect password.")
-
-
 
 
 # ==============================
@@ -537,9 +527,6 @@ if ss.logged_in:
             st.success("Logged out successfully! Redirecting to login...")
             st.rerun()
 
-        # -------------------------
-        # Generate Paper
-        # -------------------------
          # -------------------------
         # Generate Paper
         # -------------------------
@@ -575,7 +562,7 @@ if ss.logged_in:
 
             style = st.text_input("Style / difficulty (optional)", key="t_style")
 
-            if st.button("Generate Question Paper (Gemini)", key="t_generate"):
+            if st.button("Generate Question Paper", key="t_generate"):
                 source_text = ss.get("uploaded_text", "")
                 if not source_text:
                     st.warning("No uploaded text in session — generator will use demo fallback.")
@@ -621,9 +608,6 @@ if ss.logged_in:
                     st.download_button("📘 Solved Paper (DOCX)", s_doc, file_name="Solved_Paper.docx")
                     st.download_button("📘 Solved Paper (PDF)", s_pdf, file_name="Solved_Paper.pdf")
 
-        # -------------------------
-        # Conduct Exam / Rooms
-        # -------------------------
         # -------------------------
         # Conduct Exam / Manage Rooms
         # -------------------------
@@ -755,12 +739,6 @@ if ss.logged_in:
                     except Exception:
                         st.info("No results yet.")
 
-        # -------------------------
-        # QUICK QUIZ — TEACHER SIDE
-        # -------------------------
-        # -------------------------
-        # QUICK QUIZ — TEACHER SIDE (Enhanced)
-        # -------------------------
         # -------------------------
         # QUICK QUIZ — TEACHER SIDE (Enhanced with Timer + Marks)
         # -------------------------
@@ -973,7 +951,7 @@ if ss.logged_in:
     # -------------------------
     elif ss.role == "Student":
         st.title("👨‍🎓 Student Dashboard")
-        menu = st.sidebar.selectbox("Menu", ["Prepare Exam", "Take Exam", "Take Quick MCQs Quiz", "About"],key="student_menu")
+        menu = st.sidebar.selectbox("Menu", ["Prepare Exam", "Attempt Exam", "Attempt Quick MCQs Quiz", "About"],key="student_menu")
 
         # Logout button below menu
         if st.sidebar.button("🔒 Logout"):
@@ -1072,7 +1050,7 @@ if ss.logged_in:
         # -------------------------
         # Take Exam / Join or Generate Exam
         # -------------------------
-        if menu == "Take Exam":
+        if menu == "Attempt Exam":
             st.subheader("Join Exam Room")
             name_in = st.text_input("Your name", key="join_name_student")
             code_in = st.text_input("Room code", key="join_code_student")
@@ -1241,7 +1219,7 @@ if ss.logged_in:
         # -------------------------
         # STUDENT DASHBOARD
         # -------------------------
-        if menu == "Take Quick MCQs Quiz":
+        if menu == "Attempt Quick MCQs Quiz":
             st.header("⚡ Quick MCQ Quiz — Student Panel")
 
             # If not joined, show join form
@@ -1484,3 +1462,4 @@ if ss.logged_in:
                         f'<a href="{facebook_redirect_url}"><img src="{facebook_url}" width="60" height="60"></a>', unsafe_allow_html=True)
             # Thank you message
             st.write("<p style='color:green; font-size: 30px; font-weight: bold;'>Thank you for using this app, share with your friends!😇</p>", unsafe_allow_html=True)
+
