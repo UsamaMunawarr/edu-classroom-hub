@@ -17,6 +17,7 @@ import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_autorefresh import st_autorefresh
+from sentence_transformers import SentenceTransformer, util
 
 # Optional AI / Embeddings
 try:
@@ -49,13 +50,15 @@ CREATE TABLE IF NOT EXISTS results (
 """)
 conn.commit()
 
+
+
 # -------------------------
 # GEMINI & EMBEDDINGS
 # -------------------------
 from dotenv import load_dotenv
 load_dotenv()
 
-# API_KEY = os.getenv("API_KEY")
+#API_KEY = os.getenv("API_KEY")
 API_KEY = st.secrets.get("API_KEY")
 # Gemini setup (optional AI)
 if HAVE_GEN:
@@ -72,6 +75,7 @@ else:
 
 # Don't load SentenceTransformer here! We'll lazy-load it inside grading function
 embed_model = None
+
 
 # -------------------------
 # UTILITY FUNCTIONS
@@ -113,82 +117,55 @@ Return ONLY valid JSON.
             q.setdefault("id", i)
     return data
 
+#--------------
+#-------------
+#------------
+embed_model = None  # declare globally once
 
 def score_short_answer(student_answer, reference, max_marks=5):
     global embed_model
 
-    # Lazy-load embeddings only if needed
+    # Lazy-load model if not already loaded
     if embed_model is None:
-        try:
-            from sentence_transformers import SentenceTransformer, util
-            embed_model = SentenceTransformer("all-MiniLM-L6-v2")
-        except Exception:
-            embed_model = None
+        embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    # If embeddings unavailable, fallback
-    if embed_model is None:
-        sim = 1.0 if reference.lower().strip() in student_answer.lower() else 0.0
-        marks = max_marks if sim >= 0.75 else max_marks * 0.5 if sim >= 0.4 else 0.0
-        return marks, sim
+    # Handle empty answers gracefully
+    if not student_answer.strip():
+        return 0.0, 0.0
 
-    # Use embeddings to calculate similarity
+    # Encode answers
     emb1 = embed_model.encode(student_answer, convert_to_tensor=True)
     emb2 = embed_model.encode(reference, convert_to_tensor=True)
     sim = util.pytorch_cos_sim(emb1, emb2).item()
 
+    # Convert similarity to marks
     if sim >= 0.75: marks = max_marks
     elif sim >= 0.6: marks = max_marks * 0.8
     elif sim >= 0.45: marks = max_marks * 0.5
     elif sim >= 0.3: marks = max_marks * 0.25
     else: marks = 0.0
 
-    return marks, sim
+    return round(marks, 2), sim
 
 
 def grade_long_answer_fallback(question, reference_answer, student_answer, max_marks=10):
-    global gen_model, embed_model
+    global embed_model
 
     try:
-        if gen_model is None:
-            raise Exception("Gemini not configured")
-        prompt = f"""
-You are a strict but fair grader. Return JSON: {{score: number (0-{max_marks}), feedback: string}}.
-Question: {question}
-Reference answer: {reference_answer}
-Student answer: {student_answer}
-"""
-        resp = gen_model.generate_content(prompt).text.strip()
-        parsed = json.loads(resp)
-        score = float(parsed.get("score", 0))
-        feedback = parsed.get("feedback", "")
-        return max(0.0, min(score, max_marks)), feedback
-    except Exception:
-        # Lazy-load embeddings if available
         if embed_model is None:
-            try:
-                from sentence_transformers import SentenceTransformer, util
-                embed_model = SentenceTransformer("all-MiniLM-L6-v2")
-            except Exception:
-                embed_model = None
+            embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-        # Fallback using embeddings
-        if embed_model is None:
-            try:
-                vectorizer = TfidfVectorizer().fit([reference_answer, student_answer])
-                vectors = vectorizer.transform([reference_answer, student_answer])
-                sim = cosine_similarity(vectors[0:1], vectors[1:2])[0][0]
-                return round(sim * max_marks, 2), f"Auto-graded similarity {sim*100:.1f}% (fallback)"
-            except Exception as e2:
-                return 0.0, f"Auto-grade failed: {str(e2)}"
-        else:
-            emb1 = embed_model.encode(student_answer, convert_to_tensor=True)
-            emb2 = embed_model.encode(reference_answer, convert_to_tensor=True)
-            sim = util.pytorch_cos_sim(emb1, emb2).item()
-            marks = min(max(sim * max_marks, 0.0), max_marks)
-            return marks, f"Auto-graded similarity {sim*100:.1f}%"
-
-
-
+        emb1 = embed_model.encode(student_answer, convert_to_tensor=True)
+        emb2 = embed_model.encode(reference_answer, convert_to_tensor=True)
+        sim = util.pytorch_cos_sim(emb1, emb2).item()
+        marks = min(max(sim * max_marks, 0.0), max_marks)
+        return round(marks, 2), f"Auto-graded similarity {sim*100:.1f}%"
+    except Exception as e:
+        # Fallback if model unavailable
+        vectorizer = TfidfVectorizer().fit([reference_answer, student_answer])
+        vectors = vectorizer.transform([reference_answer, student_answer])
+        sim = cosine_similarity(vectors[0:1], vectors[1:2])[0][0]
+        return round(sim * max_marks, 2), f"TF-IDF fallback similarity {sim*100:.1f}% (reason: {e})"
 
 
 def grade_long_answer(student_answer, reference, max_marks=10):
@@ -247,6 +224,86 @@ def make_pdf_report(data, student_answers, marks_config):
     doc.build(story)
     buf.seek(0)
     return buf
+
+
+
+# -------------------------
+# RESULT DISPLAY HELPER
+# -------------------------
+def show_score_table(breakdown, total_score=None, total_marks=None):
+    """Display result breakdown as a clean table"""
+    rows = []
+    for section, details in breakdown.items():
+        for qid, marks in details.items():
+            rows.append({
+                "Section": section.capitalize(),
+                "Question ID": qid,
+                "Marks Obtained": marks
+            })
+    if rows:
+        df_break = pd.DataFrame(rows)
+        if total_score is not None and total_marks is not None:
+            st.markdown(f"### 🎯 **Your Score:** {total_score} / {total_marks}")
+        st.subheader("📊 Detailed Breakdown")
+        st.table(df_break)
+    else:
+        st.info("No breakdown data available.")
+
+# -------------------------
+# SECTION SCORING HELPERS (reuses your existing functions)
+# -------------------------
+
+def score_mcq(student_answers, paper, marks_per_mcq=1):
+    """Scores MCQs based on correct answer_letter"""
+    total_score = 0
+    breakdown = {}
+    for q in paper.get("mcqs", []):
+        qid = str(q["id"])
+        student_choice = student_answers.get(qid, "").strip()
+        letter = q.get("answer_letter", "").lower()
+        correct = ""
+        try:
+            correct = q.get("options", [])[ord(letter) - 97] if letter else ""
+        except Exception:
+            pass
+        if student_choice.lower() == correct.lower():
+            total_score += marks_per_mcq
+            breakdown[qid] = marks_per_mcq
+        else:
+            breakdown[qid] = 0
+    return total_score, breakdown
+
+
+def score_short_section(student_answers, paper, marks_per_short=5):
+    """Uses your score_short_answer() for short-type questions"""
+    total_score = 0
+    breakdown = {}
+    for q in paper.get("shorts", []):
+        qid = str(q["id"])
+        stu_ans = student_answers.get(qid, "")
+        ref_ans = q.get("reference_answer", "")
+        marks, sim = score_short_answer(stu_ans, ref_ans, max_marks=marks_per_short)
+        total_score += marks
+        breakdown[qid] = round(marks, 2)
+    return total_score, breakdown
+
+
+def score_long_section(student_answers, paper, marks_per_long=10):
+    """Uses your grade_long_answer_fallback() for long-type questions"""
+    total_score = 0
+    breakdown = {}
+    for q in paper.get("longs", []):
+        qid = str(q["id"])
+        stu_ans = student_answers.get(qid, "")
+        ref_ans = q.get("reference_answer", "")
+        marks, feedback = grade_long_answer_fallback(
+            q.get("question", ""), ref_ans, stu_ans, max_marks=marks_per_long
+        )
+        total_score += marks
+        breakdown[qid] = round(marks, 2)
+    return total_score, breakdown
+
+
 
 # -------------------------
 # DOCUMENT CREATION
@@ -345,7 +402,7 @@ _init_keys = {
     "uploaded_text": None,   # text extracted from uploaded PDF (Home)
     "uploaded_file_name": None,
     "paper": None,           # generated paper dict
-    "answers": None,         # for Take Test per-user answers
+    "answers": None,         # for Attempt Test per-user answers
     # Exam/Quiz specific
     "role": None,
     "active_room": None,
@@ -362,7 +419,9 @@ for k,v in _init_keys.items():
     if k not in ss:
         ss[k] = v
 
-
+##########
+##
+###########
 
 def refresh_lobby(msg="Lobby refreshed!"):
     """
@@ -370,84 +429,6 @@ def refresh_lobby(msg="Lobby refreshed!"):
     """
     st.toast(f"🔁 {msg}")
     st.rerun()
-
-
-# -------------------------
-# RESULT DISPLAY HELPER
-# -------------------------
-def show_score_table(breakdown, total_score=None, total_marks=None):
-    """Display result breakdown as a clean table"""
-    rows = []
-    for section, details in breakdown.items():
-        for qid, marks in details.items():
-            rows.append({
-                "Section": section.capitalize(),
-                "Question ID": qid,
-                "Marks Obtained": marks
-            })
-    if rows:
-        df_break = pd.DataFrame(rows)
-        if total_score is not None and total_marks is not None:
-            st.markdown(f"### 🎯 **Your Score:** {total_score} / {total_marks}")
-        st.subheader("📊 Detailed Breakdown")
-        st.table(df_break)
-    else:
-        st.info("No breakdown data available.")
-
-# -------------------------
-# SECTION SCORING HELPERS (reuses your existing functions)
-# -------------------------
-
-def score_mcq(student_answers, paper, marks_per_mcq=1):
-    """Scores MCQs based on correct answer_letter"""
-    total_score = 0
-    breakdown = {}
-    for q in paper.get("mcqs", []):
-        qid = str(q["id"])
-        student_choice = student_answers.get(qid, "").strip()
-        letter = q.get("answer_letter", "").lower()
-        correct = ""
-        try:
-            correct = q.get("options", [])[ord(letter) - 97] if letter else ""
-        except Exception:
-            pass
-        if student_choice.lower() == correct.lower():
-            total_score += marks_per_mcq
-            breakdown[qid] = marks_per_mcq
-        else:
-            breakdown[qid] = 0
-    return total_score, breakdown
-
-
-def score_short_section(student_answers, paper, marks_per_short=5):
-    """Uses your score_short_answer() for short-type questions"""
-    total_score = 0
-    breakdown = {}
-    for q in paper.get("shorts", []):
-        qid = str(q["id"])
-        stu_ans = student_answers.get(qid, "")
-        ref_ans = q.get("reference_answer", "")
-        marks, sim = score_short_answer(stu_ans, ref_ans, max_marks=marks_per_short)
-        total_score += marks
-        breakdown[qid] = round(marks, 2)
-    return total_score, breakdown
-
-
-def score_long_section(student_answers, paper, marks_per_long=10):
-    """Uses your grade_long_answer_fallback() for long-type questions"""
-    total_score = 0
-    breakdown = {}
-    for q in paper.get("longs", []):
-        qid = str(q["id"])
-        stu_ans = student_answers.get(qid, "")
-        ref_ans = q.get("reference_answer", "")
-        marks, feedback = grade_long_answer_fallback(
-            q.get("question", ""), ref_ans, stu_ans, max_marks=marks_per_long
-        )
-        total_score += marks
-        breakdown[qid] = round(marks, 2)
-    return total_score, breakdown
-
 
 # -------------------------
 # SAVE TO CSV (instead of SQLite)
@@ -472,6 +453,8 @@ def save_result_csv(room_code, student_name, score, total, breakdown):
 
     df.to_csv(QUIZ_RESULTS_CSV, index=False)
 
+
+
 # -------------------------
 # LOGIN PAGE
 # -------------------------
@@ -494,6 +477,8 @@ if not ss.logged_in:
             st.rerun()
         else:
             st.error("Incorrect password.")
+
+
 
 
 # ==============================
@@ -527,6 +512,9 @@ if ss.logged_in:
             st.success("Logged out successfully! Redirecting to login...")
             st.rerun()
 
+        # -------------------------
+        # Generate Paper
+        # -------------------------
          # -------------------------
         # Generate Paper
         # -------------------------
@@ -608,6 +596,9 @@ if ss.logged_in:
                     st.download_button("📘 Solved Paper (DOCX)", s_doc, file_name="Solved_Paper.docx")
                     st.download_button("📘 Solved Paper (PDF)", s_pdf, file_name="Solved_Paper.pdf")
 
+        # -------------------------
+        # Conduct Exam / Rooms
+        # -------------------------
         # -------------------------
         # Conduct Exam / Manage Rooms
         # -------------------------
@@ -739,6 +730,12 @@ if ss.logged_in:
                     except Exception:
                         st.info("No results yet.")
 
+        # -------------------------
+        # QUICK QUIZ — TEACHER SIDE
+        # -------------------------
+        # -------------------------
+        # QUICK QUIZ — TEACHER SIDE (Enhanced)
+        # -------------------------
         # -------------------------
         # QUICK QUIZ — TEACHER SIDE (Enhanced with Timer + Marks)
         # -------------------------
@@ -1045,10 +1042,7 @@ if ss.logged_in:
 
 
         # -------------------------
-        # Take Exam / Join Exam Room
-        # -------------------------
-        # -------------------------
-        # Take Exam / Join or Generate Exam
+        # Attempt Exam / Join or Generate Exam
         # -------------------------
         if menu == "Attempt Exam":
             st.subheader("Join Exam Room")
@@ -1206,16 +1200,6 @@ if ss.logged_in:
                             # Reset answers
                             ss["answers"] = {"mcq":{}, "short":{}, "long":{}}
 
-
-
-
- 
-        # -------------------------
-        # Quick MCQ Quiz Mode
-        # -------------------------
-        # # -------------------------
-        # # STUDENT DASHBOARD
-        # # -------------------------
         # -------------------------
         # STUDENT DASHBOARD
         # -------------------------
@@ -1462,4 +1446,3 @@ if ss.logged_in:
                         f'<a href="{facebook_redirect_url}"><img src="{facebook_url}" width="60" height="60"></a>', unsafe_allow_html=True)
             # Thank you message
             st.write("<p style='color:green; font-size: 30px; font-weight: bold;'>Thank you for using this app, share with your friends!😇</p>", unsafe_allow_html=True)
-
