@@ -4,7 +4,10 @@
 # 🎓 Smart Exam & Quick Quiz Platform
 ![⚡ AI-Powered](https://img.shields.io/badge/⚡%20AI-Powered-FF6F61?style=for-the-badge) ![🤖 Generative AI](https://img.shields.io/badge/🤖%20Generative%20AI-ff4444?style=for-the-badge) ![🧠 LLM Question Generator](https://img.shields.io/badge/🧠%20LLM%20Question%20Generator-ffbb33?style=for-the-badge) ![⏱️ Real-Time Quizzes](https://img.shields.io/badge/⏱️%20Real--Time%20Quizzes-00C851?style=for-the-badge) ![📥 Downloadable Papers](https://img.shields.io/badge/📥%20Downloadable%20Papers-33b5e5?style=for-the-badge) ![🎨 Interactive UI](https://img.shields.io/badge/🎨%20Interactive%20UI-9933cc?style=for-the-badge) ![🌍 Multi-User](https://img.shields.io/badge/🌍%20Multi--User-00C851?style=for-the-badge) ![⚡ Fast & Lightweight](https://img.shields.io/badge/⚡%20Fast%20%26%20Lightweight-33b5e5?style=for-the-badge)
 
-![App Demo](demo/app_demo.gif)
+![App Demo](demo/login.gif)
+![App Demo](demo/generate.gif)
+![App Demo](demo/mcqs.gif)
+![App Demo](demo/about.gif)
 
 > **AI-Powered Exam Generation & Real-Time Student Quizzes — Transforming Education with LLMs & Generative AI!**
 
@@ -110,6 +113,7 @@ streamlit run app.py
 [![GitHub](https://img.icons8.com/fluent/48/000000/github.png)](https://github.com/UsamaMunawarr)[![LinkedIn](https://img.icons8.com/color/48/000000/linkedin.png)](https://www.linkedin.com/in/abu--usama)[![YouTube](https://img.icons8.com/?size=50\&id=19318\&format=png)](https://www.youtube.com/@CodeBaseStats)[![Twitter](https://img.icons8.com/color/48/000000/twitter.png)](https://twitter.com/Usama__Munawar)[![Facebook](https://img.icons8.com/color/48/000000/facebook-new.png)](https://www.facebook.com/profile.php?id=100005320726463)
 
 > Thank you for exploring this project! Share & demo it to showcase **AI, LLMs, and real-time web app expertise**. 😇
+
 
 
 
