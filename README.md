@@ -14,11 +14,11 @@
 ## **5. About**     
 ![App Demo](demo/about.gif)
 
-> **AI-Powered Exam Generation & Real-Time Student Quizzes — Transforming Education with LLMs & Generative AI!**
+> **AI-Powered Exam Generation & Real-Time Student Quizzes: Transforming Education with LLMs & Generative AI!**
 
 ---
 
-## 📱 App Features — Transforming Education with AI
+## 📱 App Features: Transforming Education with AI
 
 ### **1. AI-Powered Exam Generation**
 
@@ -118,6 +118,7 @@ streamlit run app.py
 [![GitHub](https://img.icons8.com/fluent/48/000000/github.png)](https://github.com/UsamaMunawarr)[![LinkedIn](https://img.icons8.com/color/48/000000/linkedin.png)](https://www.linkedin.com/in/abu--usama)[![YouTube](https://img.icons8.com/?size=50\&id=19318\&format=png)](https://www.youtube.com/@CodeBaseStats)[![Twitter](https://img.icons8.com/color/48/000000/twitter.png)](https://twitter.com/Usama__Munawar)[![Facebook](https://img.icons8.com/color/48/000000/facebook-new.png)](https://www.facebook.com/profile.php?id=100005320726463)
 
 > Thank you for exploring this project! Share & demo it to showcase **AI, LLMs, and real-time web app expertise**. 😇
+
 
 
 
