@@ -6,6 +6,7 @@
 
 ![App Demo](demo/login.gif)
 ![App Demo](demo/generate.gif)
+![App Demo](demo/conduct-exam.gif)
 ![App Demo](demo/mcqs.gif)
 ![App Demo](demo/about.gif)
 
@@ -113,6 +114,7 @@ streamlit run app.py
 [![GitHub](https://img.icons8.com/fluent/48/000000/github.png)](https://github.com/UsamaMunawarr)[![LinkedIn](https://img.icons8.com/color/48/000000/linkedin.png)](https://www.linkedin.com/in/abu--usama)[![YouTube](https://img.icons8.com/?size=50\&id=19318\&format=png)](https://www.youtube.com/@CodeBaseStats)[![Twitter](https://img.icons8.com/color/48/000000/twitter.png)](https://twitter.com/Usama__Munawar)[![Facebook](https://img.icons8.com/color/48/000000/facebook-new.png)](https://www.facebook.com/profile.php?id=100005320726463)
 
 > Thank you for exploring this project! Share & demo it to showcase **AI, LLMs, and real-time web app expertise**. 😇
+
 
 
 
