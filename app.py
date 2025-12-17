@@ -61,33 +61,13 @@ load_dotenv()
 #API_KEY = os.getenv("API_KEY")
 API_KEY = st.secrets.get("API_KEY")
 # Gemini setup (optional AI)
-# if HAVE_GEN:
-#     try:
-#         genai.configure(api_key=API_KEY)
-#         try:
-#             gen_model = genai.GenerativeModel("models/gemini-2.5-pro")
-#         except Exception:
-#             gen_model = genai.GenerativeModel("models/gemini-2.5-flash")
-#     except Exception:
-#         gen_model = None
-# else:
-#     gen_model = None
-
-# # Don't load SentenceTransformer here! We'll lazy-load it inside grading function
-# embed_model = None
-# Gemini setup (optional AI)
 if HAVE_GEN:
     try:
         genai.configure(api_key=API_KEY)
-
-        # Use Flash as default for free-tier
         try:
-            # Only try Pro if you have billing enabled
-            # Otherwise, this will fail with quota 0
-            gen_model = genai.GenerativeModel("models/gemini-2.5-flash")
+            gen_model = genai.GenerativeModel("models/gemini-2.5-pro")
         except Exception:
-            gen_model = None
-
+            gen_model = genai.GenerativeModel("models/gemini-2.5-flash")
     except Exception:
         gen_model = None
 else:
@@ -95,6 +75,26 @@ else:
 
 # Don't load SentenceTransformer here! We'll lazy-load it inside grading function
 embed_model = None
+# # Gemini setup (optional AI)
+# if HAVE_GEN:
+#     try:
+#         genai.configure(api_key=API_KEY)
+
+#         # Use Flash as default for free-tier
+#         try:
+#             # Only try Pro if you have billing enabled
+#             # Otherwise, this will fail with quota 0
+#             gen_model = genai.GenerativeModel("models/gemini-2.5-flash")
+#         except Exception:
+#             gen_model = None
+
+#     except Exception:
+#         gen_model = None
+# else:
+#     gen_model = None
+
+# # Don't load SentenceTransformer here! We'll lazy-load it inside grading function
+# embed_model = None
 
 
 # -------------------------
