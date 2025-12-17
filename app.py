@@ -61,13 +61,33 @@ load_dotenv()
 #API_KEY = os.getenv("API_KEY")
 API_KEY = st.secrets.get("API_KEY")
 # Gemini setup (optional AI)
+# if HAVE_GEN:
+#     try:
+#         genai.configure(api_key=API_KEY)
+#         try:
+#             gen_model = genai.GenerativeModel("models/gemini-2.5-pro")
+#         except Exception:
+#             gen_model = genai.GenerativeModel("models/gemini-2.5-flash")
+#     except Exception:
+#         gen_model = None
+# else:
+#     gen_model = None
+
+# # Don't load SentenceTransformer here! We'll lazy-load it inside grading function
+# embed_model = None
+# Gemini setup (optional AI)
 if HAVE_GEN:
     try:
         genai.configure(api_key=API_KEY)
+
+        # Use Flash as default for free-tier
         try:
-            gen_model = genai.GenerativeModel("models/gemini-2.5-pro")
-        except Exception:
+            # Only try Pro if you have billing enabled
+            # Otherwise, this will fail with quota 0
             gen_model = genai.GenerativeModel("models/gemini-2.5-flash")
+        except Exception:
+            gen_model = None
+
     except Exception:
         gen_model = None
 else:
@@ -1457,5 +1477,6 @@ if ss.logged_in:
                         f'<a href="{facebook_redirect_url}"><img src="{facebook_url}" width="60" height="60"></a>', unsafe_allow_html=True)
             # Thank you message
             st.write("<p style='color:green; font-size: 30px; font-weight: bold;'>Thank you for using this app, share with your friends!😇</p>", unsafe_allow_html=True)
+
 
 
